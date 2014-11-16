@@ -32,15 +32,22 @@ l?=100000
 k:=$(shell calc-k.r --length $l)
 # bloom filter size, in bytes
 # (determined by false positive rate)
-b:=$(shell calc-bloom-size.r --fpr $(fpr) --num_hash $h --size $l)
+bytes:=$(shell calc-bloom-size.r --fpr $(fpr) --num_hash $h --size $l)
+bits:=$(shell echo '8*$(bytes)' | bc)
+
+#------------------------------------------------------------
+# helper functions
+#------------------------------------------------------------
+
+popcount=$(shell abyss-bloom info -v -k$k $(1) 2>&1 | awk -F: '/popcount/ {print $$2}')
 
 #------------------------------------------------------------
 # special rules
 #------------------------------------------------------------
 
-.PHONY: clean
+.PHONY: clean vars print_results
 
-default: intersection.bloom
+default: print_results
 
 clean:
 	rm -f $(genome1) $(genome2) *.bloom.gz *.partial
@@ -69,8 +76,36 @@ $(genome2): $(genome1)
 
 # build a bloom filter for a FASTA file
 %.bloom: %
-	abyss-bloom build -v -k$k -b$b $@ $^
+	abyss-bloom build -v -k$k -b$(bytes) $@ $^
 
 # compute bloom filter intersection 
 intersection.bloom: $(genome1).bloom $(genome2).bloom
 	abyss-bloom intersect -v -k$k $@ $^
+
+#------------------------------------------------------------
+# Print results to STDOUT
+#------------------------------------------------------------
+
+print_results: intersection.bloom
+	@# estimated number of kmers in genome 1
+	@bloom-cardinality.r \
+		--size $(bits) \
+		--num_hash $h \
+		--popcount $(call popcount,$(genome1).bloom)
+	@echo -ne '\t'
+	@# estimated number of kmers in genome 2
+	@bloom-cardinality.r \
+		--size $(bits) \
+		--num_hash $h \
+		--popcount $(call popcount,$(genome2).bloom)
+	@echo -ne '\t'
+	@# number of bits bloom intersection
+	@# estimated number of kmers in both genomes 1 and 2
+	@echo -n $(call popcount,intersection.bloom)
+	@echo -ne '\t'
+	@intersect-cardinality.r \
+		--size $(bits) \
+		--num_hash $h \
+		--popcount1 $(call popcount,$(genome1).bloom) \
+		--popcount2 $(call popcount,$(genome2).bloom) \
+		--overlap_count $(call popcount,intersection.bloom)

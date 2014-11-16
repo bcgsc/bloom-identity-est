@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+	echo "Usage: $(basename $0) <num_bases>" 1>&2
+	exit 1
+fi
+
+n=$1; shift
+
+awk -v n=$n '
+BEGIN {
+	srand()
+	chars[0]="A"
+	chars[1]="C"
+	chars[2]="G"
+	chars[3]="T"
+	print ">random"
+	for (i = 0; i <= n; i++)
+		printf("%s", chars[ int(4 * rand()) ])
+	printf("\n")
+	exit 0;
+}
+'

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+	echo "Usage: $(basename $0) <percentage> [FASTA]..." 1>&2
+	exit 1
+fi
+
+p=$1; shift
+
+bioawk -c fastx -v p=$p \
+'
+BEGIN {
+	srand()
+	chars[0]="A"
+	chars[1]="C"
+	chars[2]="G"
+	chars[3]="T"
+}
+{
+	print ">"$name
+	split($seq, bases, "")
+	for (i = 1; i <= length($seq); i++) {
+		if (rand() < (1 - p)) {
+			origBase=bases[i]
+			while (bases[i]==origBase) {
+				bases[i] = chars[ int(4 * rand()) ]
+			}
+		}
+		printf("%s", bases[i])
+	}
+	printf("\n")
+}
+' "$@"

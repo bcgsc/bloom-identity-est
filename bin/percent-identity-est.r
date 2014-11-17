@@ -36,7 +36,7 @@ opt = getopt(spec)
 
 # print column headers
 if (is.null(opt$no_header)) {
-	cat(paste(headers, sep='\t'))
+	cat(headers, sep='\t')
 	cat('\n');
 	if (!is.null(opt$header_only)) {
 		q();

@@ -6,6 +6,14 @@ DESCRIPTION = '
 	two genomes using Bloom filter intersection popcount. 
 '
 
+headers = c(
+	'genome1_kmers_est',
+	'genome2_kmers_est',
+	'min_kmers_est',
+	'intersect_kmers_est',
+	'percent_id_est'
+)
+
 #------------------------------------------------------------
 # parse command line opts
 #------------------------------------------------------------
@@ -25,6 +33,15 @@ spec = matrix(c(
 ), byrow=TRUE, ncol=5)
 
 opt = getopt(spec)
+
+# print column headers
+if (is.null(opt$no_header)) {
+	cat(paste(headers, sep='\t'))
+	cat('\n');
+	if (!is.null(opt$header_only)) {
+		q();
+	}
+}
 
 if (!is.null(opt$help)
 	|| is.null(opt$bloom_size)
@@ -145,14 +162,6 @@ popcount1 = opt$popcount1
 popcount2 = opt$popcount2
 popcount3 = opt$popcount3
 
-headers = c(
-	'genome1_kmers_est',
-	'genome2_kmers_est',
-	'min_kmers_est',
-	'intersect_kmers_est',
-	'percent_id_est'
-)
-
 vals = list()
 vals[['genome1_kmers_est']] = cardinality_mle(b, h, popcount1);
 vals[['genome2_kmers_est']] = cardinality_mle(b, h, popcount2);
@@ -164,15 +173,6 @@ vals[['percent_id_est']] = percent_identity_est(k,
 	vals[['genome1_kmers_est']],
 	vals[['genome2_kmers_est']],
 	vals[['intersect_kmers_est']]);
-
-# print column headers
-if (is.null(opt$no_header)) {
-	cat(paste(headers, sep='\t'))
-	cat('\n');
-	if (!is.null(opt$header_only)) {
-		q();
-	}
-}
 
 # print column values
 first_col = 1

@@ -1,0 +1,6 @@
+#!/bin/bash
+percent-identity-est.r --header_only | tee results.txt
+for i in $(seq 1 1000); do
+	monte-carlo-trial.mk -s pid=0.8 fpr=0.1 header=0 clean print_results
+done | tee -a results.txt
+

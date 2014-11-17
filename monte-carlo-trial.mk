@@ -20,6 +20,8 @@ genome2?=genome2.fa
 # params
 #------------------------------------------------------------
 
+# print headers for result row?
+header?=1
 # percent sequence identity
 pid?=0.95
 # bloom filter false positive rate
@@ -40,6 +42,7 @@ bits:=$(shell echo '8*$(bytes)' | bc)
 #------------------------------------------------------------
 
 popcount=$(shell abyss-bloom info -v -k$k $(1) 2>&1 | awk -F: '/popcount/ {print $$2}')
+eq = $(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
 
 #------------------------------------------------------------
 # special rules
@@ -83,29 +86,15 @@ intersection.bloom: $(genome1).bloom $(genome2).bloom
 	abyss-bloom intersect -v -k$k $@ $^
 
 #------------------------------------------------------------
-# Print results to STDOUT
+# print results to STDOUT
 #------------------------------------------------------------
 
 print_results: intersection.bloom
-	@# estimated number of kmers in genome 1
-	@bloom-cardinality.r \
-		--size $(bits) \
-		--num_hash $h \
-		--popcount $(call popcount,$(genome1).bloom)
-	@echo -ne '\t'
-	@# estimated number of kmers in genome 2
-	@bloom-cardinality.r \
-		--size $(bits) \
-		--num_hash $h \
-		--popcount $(call popcount,$(genome2).bloom)
-	@echo -ne '\t'
-	@# number of bits bloom intersection
-	@# estimated number of kmers in both genomes 1 and 2
-	@echo -n $(call popcount,intersection.bloom)
-	@echo -ne '\t'
-	@intersect-cardinality.r \
-		--size $(bits) \
+	@percent-identity-est.r \
+		$(if $(call eq,$(header),0),--no_header,) \
+		--bloom_size $(bits) \
+		--kmer_size $k \
 		--num_hash $h \
 		--popcount1 $(call popcount,$(genome1).bloom) \
 		--popcount2 $(call popcount,$(genome2).bloom) \
-		--overlap_count $(call popcount,intersection.bloom)
+		--popcount3 $(call popcount,intersection.bloom)

@@ -1,0 +1,2 @@
+#!/bin/bash
+bioawk -c fastx '{l+=length($seq)} END {print l}' "$@"

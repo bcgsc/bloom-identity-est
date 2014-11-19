@@ -1,0 +1,9 @@
+#!/bin/bash
+for FILE in "$@"; do
+	MIME=$(file -bi $FILE)
+	case $MIME in
+	"application/x-gzip") zcat $FILE ;;
+	"application/x-bzip2") bzcat $FILE ;;
+	*) cat $FILE ;;
+	esac
+done

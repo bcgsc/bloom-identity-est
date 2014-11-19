@@ -41,6 +41,8 @@ genome2_basename=$(notdir $(genome2))
 
 # numbero of threads per trial
 j?=1
+# minimum length for input fasta sequences
+s?=500
 # hash seeds for trials
 hash_seeds:=$(foreach i,$(shell seq 1 $n),$(call rand))
 # print headers for result row?
@@ -73,6 +75,7 @@ clean:
 check_binaries:
 	$(call which, abyss-bloom)
 	$(call which, fastx-length)
+	$(call which, fasta-minlen)
 	$(call which, calc-k.r)
 	$(call which, percent-identity-est.r)
 
@@ -89,6 +92,7 @@ vars:
 # build bloom filter from FASTA file
 $(genome1_basename).seed%.bloom.gz: $(genome1)
 	smartcat $(genome1) | \
+		fasta-minlen $s | \
 		abyss-bloom build $(bloom_build_opts) -h$* - - | \
 		gzip > $@.partial
 	mv $@.partial $@
@@ -96,6 +100,7 @@ $(genome1_basename).seed%.bloom.gz: $(genome1)
 # build bloom filter from FASTA file
 $(genome2_basename).seed%.bloom.gz: $(genome2)
 	smartcat $(genome2) | \
+		fasta-minlen $s | \
 		abyss-bloom build $(bloom_build_opts) -h$* - - | \
 		gzip > $@.partial
 	mv $@.partial $@

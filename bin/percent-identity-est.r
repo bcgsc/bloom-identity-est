@@ -3,7 +3,7 @@
 PROG_NAME='percent-identity-est.r'
 DESCRIPTION = '
 	Description: Estimate percent identity between
-	two genomes using Bloom filter intersection popcount. 
+	two genomes using Bloom filter intersection popcount.
 '
 
 headers = c(
@@ -65,7 +65,7 @@ if (is.null(opt$num_hash)) { opt$num_hash = 1 }
 
 #------------------------------------------------------------
 # cardinality_mle
-# 
+#
 # Return the maximum likelihood estimate for the number
 # of elements in a bloom filter.
 #
@@ -75,7 +75,7 @@ if (is.null(opt$num_hash)) { opt$num_hash = 1 }
 #   h: the number of hash functions
 #   t: the number of true bits in the bloom filter
 #
-# This is Equation (3) from:  
+# This is Equation (3) from:
 #
 # Papapetrou, Odysseas, Wolf Siberski, and Wolfgang Nejdl.
 # "Cardinality estimation and dynamic length adaptation for
@@ -88,9 +88,9 @@ cardinality_mle = function(m,h,t) {
 
 #------------------------------------------------------------
 # intersect_mle
-# 
+#
 # Return the maximum likelihood estimate for the number
-# of elements in the intersection (bitwise AND) of  
+# of elements in the intersection (bitwise AND) of
 # two bloom filters.
 #
 # Parameters:
@@ -98,14 +98,14 @@ cardinality_mle = function(m,h,t) {
 #   m:   the size of the bloom filters in bits (all 3 bloom
 #		 filters must be the same size)
 #   h:   the number of hash functions (all 3 bloom filters
-#		 must use exactly the same set of hash functions) 
+#		 must use exactly the same set of hash functions)
 #   t1:  the number of true bits in bloom filter 1
 #   t2:  the number of true bits in bloom filter 2
 #   t3:  the nmuber of true in the bitwise AND of bloom
 #        filters 1 and 2
 #
 # This is Equation (6) from:
-# 
+#
 # Papapetrou, Odysseas, Wolf Siberski, and Wolfgang Nejdl.
 # "Cardinality estimation and dynamic length adaptation for
 # bloom filters." Distributed and Parallel Databases 28.2-3
@@ -122,11 +122,11 @@ intersect_mle = function(m,h,t1,t2,t3) {
 # two genomes.
 #
 # Parameters:
-# 
+#
 #     k: kmer size
 #     g1: number of kmers in genome 1
 #     g2: number of kmers in genome 2
-#     o: number of kmers shared by both genomes 
+#     o: number of kmers shared by both genomes
 #
 # Background:
 #
@@ -134,15 +134,15 @@ intersect_mle = function(m,h,t1,t2,t3) {
 # are randomly distributed, then
 #
 #       O = I^k
-# 
+#
 # where O is percent overlapping kmers, I is percent sequence
 # identity, and k is kmer size.
 #
 # O can be calculated by:
 #
 #       O = o / min(g1/g2)
-# 
-# Substituting this into the equation above and solving for 
+#
+# Substituting this into the equation above and solving for
 # I gives:
 #
 #       I = (o / min(g1/g2))^(1/k)

@@ -178,7 +178,7 @@ vals[['percent_id_est']] = percent_identity_est(k,
 first_col = 1
 for (h in headers) {
 	if (!first_col) { cat('\t') }
-	cat(sprintf('%.5f', vals[h]))
+	cat(sprintf('%.10f', vals[h]))
 	first_col = 0
 }
 cat('\n')

@@ -88,19 +88,25 @@ vars:
 
 # build bloom filter from FASTA file
 $(genome1_basename).seed%.bloom.gz: $(genome1)
-	abyss-bloom build $(bloom_build_opts) -h$* - $^ | gzip > $@.partial
+	smartcat $(genome1) | \
+		abyss-bloom build $(bloom_build_opts) -h$* - - | \
+		gzip > $@.partial
 	mv $@.partial $@
 
 # build bloom filter from FASTA file
 $(genome2_basename).seed%.bloom.gz: $(genome2)
-	abyss-bloom build $(bloom_build_opts) -h$* - $^ | gzip > $@.partial
+	smartcat $(genome2) | \
+		abyss-bloom build $(bloom_build_opts) -h$* - - | \
+		gzip > $@.partial
 	mv $@.partial $@
 
 # compute bitwise AND of Bloom filters
 intersection.seed%.bloom.gz: \
 		$(genome1_basename).seed%.bloom.gz \
 		$(genome2_basename).seed%.bloom.gz
-	abyss-bloom intersect -v -k$k - $^ | gzip > $@.partial
+	zcat $^ | \
+		abyss-bloom intersect -v -k$k - - - | \
+		gzip > $@.partial
 	mv $@.partial $@
 		
 #------------------------------------------------------------

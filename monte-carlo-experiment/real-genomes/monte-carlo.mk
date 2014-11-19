@@ -32,10 +32,15 @@ endif
 ifndef n
 $(error missing required arg 'n': number of trials)
 endif
+ifndef out
+$(error missing required arg 'out': output text file for results)
+endif
 
 genome1_basename=$(notdir $(genome1))
 genome2_basename=$(notdir $(genome2))
 
+# numbero of threads per trial
+j?=1
 # hash seeds for trials
 hash_seeds:=$(foreach i,$(shell seq 1 $n),$(call rand))
 # print headers for result row?
@@ -50,6 +55,8 @@ bits:=$(shell echo $b | \
 # (make k large enough that the two genomes don't share
 # kmers by chance)
 k:=$(shell calc-k.r --length $(shell fastx-length $(genome1)))
+# options to 'abyss-bloom build' commands
+bloom_build_opts:=-v -k$k -b$b -j$j
 
 #------------------------------------------------------------
 # special rules
@@ -81,12 +88,12 @@ vars:
 
 # build bloom filter from FASTA file
 $(genome1_basename).seed%.bloom.gz: $(genome1)
-	abyss-bloom build -v -k$k -b$b -h$* - $^ | gzip > $@.partial
+	abyss-bloom build $(bloom_build_opts) -h$* - $^ | gzip > $@.partial
 	mv $@.partial $@
 
 # build bloom filter from FASTA file
 $(genome2_basename).seed%.bloom.gz: $(genome2)
-	abyss-bloom build -v -k$k -b$b -h$* - $^ | gzip > $@.partial
+	abyss-bloom build $(bloom_build_opts) -h$* - $^ | gzip > $@.partial
 	mv $@.partial $@
 
 # compute bitwise AND of Bloom filters
@@ -108,10 +115,11 @@ trial.seed%: intersection.seed%.bloom.gz
 		--num_hash $h \
 		--popcount1 $(call popcount,$(genome1_basename).seed$*.bloom.gz) \
 		--popcount2 $(call popcount,$(genome2_basename).seed$*.bloom.gz) \
-		--popcount3 $(call popcount,intersection.seed$*.bloom.gz)
+		--popcount3 $(call popcount,intersection.seed$*.bloom.gz) \
+		>> $(out)
 
 print_headers:
-	@percent-identity-est.r --header_only
+	percent-identity-est.r --header_only > $(out)
 
 # run a set of Monte Carlo trials with different hash seeds
 run_trials: check_binaries print_headers \

@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ $# -lt 1 ] || ! [[ $1 =~ '^[0-9]+$' ]]; then 
+if [ $# -lt 1 ]; then
 	echo "Usage: $(basename $0) <min_seq_len> [FASTA_FILE]..." >&2
 	echo "Filter out FASTA sequences < min_seq_len."
 	exit 1

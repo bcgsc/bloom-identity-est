@@ -56,7 +56,7 @@ bits:=$(shell echo $b | \
 # kmer length
 # (make k large enough that the two genomes don't share
 # kmers by chance)
-k:=$(shell calc-k.r --length $(shell fastx-length $(genome1)))
+k?=$(shell calc-k.r --length $(shell fastx-length $(genome1)))
 # options to 'abyss-bloom build' commands
 bloom_build_opts:=-v -k$k -b$b -j$j
 

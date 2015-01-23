@@ -7,9 +7,11 @@ DESCRIPTION = '
 '
 
 headers = c(
+	'genome1_popcount',
+	'genome2_popcount',
 	'genome1_kmers_est',
 	'genome2_kmers_est',
-	'min_kmers_est',
+	'intersect_popcount',
 	'intersect_kmers_est',
 	'percent_id_est'
 )
@@ -163,22 +165,29 @@ popcount2 = opt$popcount2
 popcount3 = opt$popcount3
 
 vals = list()
+vals[['genome1_popcount']] = opt$popcount1
+vals[['genome2_popcount']] = opt$popcount2
+vals[['intersect_popcount']] = opt$popcount3
 vals[['genome1_kmers_est']] = cardinality_mle(b, h, popcount1);
 vals[['genome2_kmers_est']] = cardinality_mle(b, h, popcount2);
-vals[['min_kmers_est']] = min(
-	vals[['genome1_kmers_est']],
-	vals[['genome2_kmers_est']]);
 vals[['intersect_kmers_est']] = intersect_mle(b, h, popcount1, popcount2, popcount3);
 vals[['percent_id_est']] = percent_identity_est(k,
 	vals[['genome1_kmers_est']],
 	vals[['genome2_kmers_est']],
 	vals[['intersect_kmers_est']]);
 
+# round values for display
+
+vals[['genome1_kmers_est']] = round(vals[['genome1_kmers_est']], 0);
+vals[['genome2_kmers_est']] = round(vals[['genome2_kmers_est']], 0);
+vals[['intersect_kmers_est']] = round(vals[['intersect_kmers_est']], 0);
+vals[['percent_id_est']] = round(vals[['percent_id_est']]*100, 6);
+
 # print column values
 first_col = 1
 for (h in headers) {
 	if (!first_col) { cat('\t') }
-	cat(sprintf('%.10f', vals[h]))
+	cat(toString(vals[h]))
 	first_col = 0
 }
 cat('\n')

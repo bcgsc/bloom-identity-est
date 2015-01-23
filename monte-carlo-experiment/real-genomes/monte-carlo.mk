@@ -6,7 +6,7 @@ SHELL=/bin/bash -o pipefail
 # helper functions
 #------------------------------------------------------------
 
-popcount=$(shell abyss-bloom info -v -k$k $(1) 2>&1 | awk -F: '/popcount/ {print $$2}')
+popcount=$(shell zcat $(1) | abyss-bloom info -v -k$k - 2>&1 | awk -F: '/popcount/ {print $$2}')
 eq=$(and $(findstring $(1),$(2)),$(findstring $(2),$(1)))
 which=which $1 >/dev/null || (echo "required binary '$1' not found on PATH" && false)
 rand=$(shell od -An -N8 -tu8 /dev/random)
@@ -50,7 +50,7 @@ header?=1
 # bloom filter size
 b?=10M
 # bloom filter size in bits
-bits:=$(shell echo $b | \
+bits:=$(shell echo '$b*8' | \
 	sed -e 's/k/*1024/;s/M/*1024^2/;s/G/*1024^3/' | \
 	bc)
 # kmer length

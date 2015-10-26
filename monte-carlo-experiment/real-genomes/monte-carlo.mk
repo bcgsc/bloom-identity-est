@@ -93,7 +93,7 @@ vars:
 $(genome1_basename).seed%.bloom.gz: $(genome1)
 	smartcat $(genome1) | \
 		fasta-minlen $s | \
-		abyss-bloom build $(bloom_build_opts) -h$* - - | \
+		abyss-bloom build $(bloom_build_opts) -h$* $(GENOME1_BLOOM_OPT) - - | \
 		gzip > $@.partial
 	mv $@.partial $@
 
@@ -101,7 +101,7 @@ $(genome1_basename).seed%.bloom.gz: $(genome1)
 $(genome2_basename).seed%.bloom.gz: $(genome2)
 	smartcat $(genome2) | \
 		fasta-minlen $s | \
-		abyss-bloom build $(bloom_build_opts) -h$* - - | \
+		abyss-bloom build $(bloom_build_opts) -h$* $(GENOME2_BLOOM_OPT) - - | \
 		gzip > $@.partial
 	mv $@.partial $@
 

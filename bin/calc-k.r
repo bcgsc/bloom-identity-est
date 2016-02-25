@@ -14,7 +14,7 @@ DESCRIPTION = '
 library('getopt')
 spec = matrix(c(
 	'help', 'h', 0, 'logical', 'print this help message',
-	'length', 'l', 1, 'integer', 'genome length [required]'
+	'length', 'l', 1, 'double', 'genome length [required]'
 ), byrow=TRUE, ncol=5)
 
 opt = getopt(spec)

@@ -26,8 +26,14 @@ h:=1
 ifndef genome1
 $(error missing required arg 'genome1': FASTA file)
 endif
+ifndef genome1_name
+$(error missing required arg 'genome1_name': output file prefix)
+endif
 ifndef genome2
 $(error missing required arg 'genome2': FASTA file)
+endif
+ifndef genome2_name
+$(error missing required arg 'genome2_name': output file prefix)
 endif
 ifndef n
 $(error missing required arg 'n': number of trials)
@@ -36,13 +42,14 @@ ifndef out
 $(error missing required arg 'out': output text file for results)
 endif
 
-genome1_basename=$(notdir $(genome1))
-genome2_basename=$(notdir $(genome2))
-
 # numbero of threads per trial
 j?=1
 # minimum length for input fasta sequences
 s?=500
+# minimum seq length threshold for genome 1
+s1?=$s
+# minimum seq length threshold for genome 2
+s2?=$s
 # hash seeds for trials
 hash_seeds:=$(foreach i,$(shell seq 1 $n),$(call rand))
 # print headers for result row?
@@ -90,25 +97,25 @@ vars:
 #------------------------------------------------------------
 
 # build bloom filter from FASTA file
-$(genome1_basename).seed%.bloom.gz: $(genome1)
+$(genome1_name).seed%.bloom.gz: $(genome1)
 	smartcat $(genome1) | \
-		fasta-minlen $s | \
+		fasta-minlen $(s1) | \
 		abyss-bloom build $(bloom_build_opts) -h$* $(GENOME1_BLOOM_OPT) - - | \
 		gzip > $@.partial
 	mv $@.partial $@
 
 # build bloom filter from FASTA file
-$(genome2_basename).seed%.bloom.gz: $(genome2)
+$(genome2_name).seed%.bloom.gz: $(genome2)
 	smartcat $(genome2) | \
-		fasta-minlen $s | \
+		fasta-minlen $(s2) | \
 		abyss-bloom build $(bloom_build_opts) -h$* $(GENOME2_BLOOM_OPT) - - | \
 		gzip > $@.partial
 	mv $@.partial $@
 
 # compute bitwise AND of Bloom filters
 intersection.seed%.bloom.gz: \
-		$(genome1_basename).seed%.bloom.gz \
-		$(genome2_basename).seed%.bloom.gz
+		$(genome1_name).seed%.bloom.gz \
+		$(genome2_name).seed%.bloom.gz
 	zcat $^ | \
 		abyss-bloom intersect -v -k$k - - - | \
 		gzip > $@.partial
@@ -124,8 +131,8 @@ trial.seed%: intersection.seed%.bloom.gz
 		--bloom_size $(bits) \
 		--kmer_size $k \
 		--num_hash $h \
-		--popcount1 $(call popcount,$(genome1_basename).seed$*.bloom.gz) \
-		--popcount2 $(call popcount,$(genome2_basename).seed$*.bloom.gz) \
+		--popcount1 $(call popcount,$(genome1_name).seed$*.bloom.gz) \
+		--popcount2 $(call popcount,$(genome2_name).seed$*.bloom.gz) \
 		--popcount3 $(call popcount,intersection.seed$*.bloom.gz) \
 		>> $(out)
 

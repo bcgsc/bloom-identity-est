@@ -120,7 +120,7 @@ intersection.seed%.bloom.gz: \
 		abyss-bloom intersect -v -k$k - - - | \
 		gzip > $@.partial
 	mv $@.partial $@
-		
+
 #------------------------------------------------------------
 # control rules
 #------------------------------------------------------------

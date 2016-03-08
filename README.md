@@ -1,44 +1,42 @@
-# APPLICATION/BACKGROUND
+# Description
 
-Rene has invented a new method for estimating percent sequence identity between two genomes, using a probabilistic data structure called a Bloom filter.  Two Bloom filters are used to represent the set of kmers in each genome, and the idea of the method is to estimate the percent sequence identity based on the number of overlapping kmers.
+These scripts provide a fast, memory-efficient method for estimating the percent sequence identity between two genomes using a probabilistic data structure called a Bloom filter ([wikipedia/Bloom_filter](https://en.wikipedia.org/wiki/Bloom_filter)).
 
-The main assumption of the method is that single-nucleotide differences between the two genomes are randomly and independently distributed.  Under this assumption, the equation that relates percent sequence identity to number of overlapping kmers is:
+# Method
 
-X/Y = Z^k
+1. The sequence(s) of the two genomes are cut up into k-mers and loaded into two separate Bloom filters using `abyss-bloom build`.
+2. The number of overlapping k-mers between the two genomes is estimated from the bitwise intersection of the two Bloom filters using `abyss-bloom intersect`.
+3. The percent sequence identity is estimated from the number of overlapping k-mers, according to the following formula.
+   ```
+   O/G = I^k
+   ```
+   where O is the number of overlapping kmers between the two genomes, G is the number of kmers in the smaller of the two genomes, I is the percent sequence identity between the two genomes, and k is the k-mer
+   size.
 
-where X is the number of overlapping kmers, Y is the number of kmers in the smaller of the two genomes, and Z is the percent sequence identity between the two genomes.
+The main assumption of the method is that single-nucleotide differences between the two genomes are randomly and independently distributed.
 
-# THE PROBLEM
+# Usage
 
-We have a random variable Z that is a function of two other random
-variables X and Y:
+The main for script for calculating the percent identity is `monte-carlo-experiment/real-genomes/monte-carlo.mk`:
 
-Z = (X/Y)^(1/k)
+```
+$ monte-carlo.mk genome1=ecoli-strain1.fasta genome1_name=strain1 \
+	genome2=ecoli-strain2.fasta genome2_name=strain2 \
+	k=20 b=10G out=results.txt
+```
 
-where k is a constant.
+# Parameters for `monte-carlo.mk`
 
-We are given functions for:
+* `genome1`: FASTA file for genome 1 [required]
+* `genome1_name`: label for genome 1 (used to generate names of temp files) [required]
+* `genome2`: FASTA file for genome 2 [required]
+* `genome2_name`: label for genome 2 (used to generate names of temp files) [required]
+* `k`: k-mer size [required]
+* `b`: Bloom filter size. Allowable units are kilobytes ('k'), megabytes ('M'), gigabytes ('G') [required]
+* `j`: number of threads [1]
+* `s`: exclude genome sequences shorter than this length [0]
 
-1. MLE(X)
-2. MLE(Y)
-3. f\_x(d) such that p(MLE(X) - d <= X <= MLE(X) + d) >= f\_x(d)
-4. f\_y(d) such that p(MLE(Y) - d <= Y <= MLE(Y) + d) >= f\_y(d)
+# Authors
 
-Using those functions, is it possible to determine d such that:
-
-p(MLE(Z) - d <= Z <= MLE(Z) + d) >= 0.95 ?
-
-# EQUATIONS
-
-MLE(X) is given by Equation (6) in attached bloom\_set\_ops.pdf (Section 5.2)
-MLE(Y) is given by Equation (3) in attached bloom\_set\_ops.pdf (Section 5.1)
-f\_x(d) is given by Theorem 2 in attached bloom\_set\_ops.pdf (Section 5.2)
-f\_y(d) is given by Theorem 1 in attached bloom\_set\_ops.pdf (Section 5.1)
-
-# IDEAS
-
-I came across the idea of "Probability Bounds Analysis" which sounds like it might help, but thus far I don't understand the technique.
-
-Wikipedia: [http://en.wikipedia.org/wiki/Probability\_bounds\_analysis](http://en.wikipedia.org/wiki/Probability\_bounds\_analysis)
-
-Tutorial: attached pba\_tutorial.pdf
+* Rene Warren
+* Ben Vandervalk - [GitHub/benvvalk](https://github.com/benvvalk)
